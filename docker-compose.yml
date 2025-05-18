@@ -1,0 +1,11 @@
+version: '3.9'
+services:
+  api:
+    container_name: taskia-auth
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "${PORT}:${PORT}"  # Host:Contenedor
+    environment:
+      - PORT=${PORT}
