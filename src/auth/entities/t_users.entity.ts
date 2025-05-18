@@ -1,6 +1,7 @@
-import { Entity, PrimaryColumn, Column, OneToOne, } from 'typeorm';
+import { Entity, PrimaryColumn, Column, OneToOne, ManyToOne, JoinColumn, } from 'typeorm';
 import { StaffStatus } from '../enum/status-staff.enum';
 import { LRCredential } from './t_credentials.entity';
+import { Country } from 'src/common/entities/t_country.entity';
 
 
 @Entity('T_USERS')
@@ -47,4 +48,8 @@ export class User {
     // Relación uno a uno con las credenciales
     @OneToOne(() => LRCredential, (credential) => credential.user)
     credential: LRCredential;
+
+    @ManyToOne(() => Country, (country) => country.users)
+    @JoinColumn({ name: 'country_id' })
+    Tcountry: Country;
 }

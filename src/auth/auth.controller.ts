@@ -5,7 +5,7 @@ import { LogindDto } from './dto/login.dto';
 import { Profile } from './enum/profile.enum';
 import { VerifyTokenDto } from './dto/verify-token.dto';
 
-@Controller('auth/v1')
+@Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) { }
 
