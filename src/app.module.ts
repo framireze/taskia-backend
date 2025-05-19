@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { EnvConfiguration } from './config/app.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommonModule } from './common/common.module';
+import { NoteModule } from './note/note.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { CommonModule } from './common/common.module';
     }),
     AuthModule,
     CommonModule,
+    NoteModule,
   ],
   controllers: [AppController],
   providers: [AppService],

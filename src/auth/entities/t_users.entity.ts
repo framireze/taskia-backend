@@ -1,7 +1,9 @@
-import { Entity, PrimaryColumn, Column, OneToOne, ManyToOne, JoinColumn, } from 'typeorm';
+import { Entity, PrimaryColumn, Column, OneToOne, ManyToOne, JoinColumn, OneToMany, } from 'typeorm';
 import { StaffStatus } from '../enum/status-staff.enum';
 import { LRCredential } from './t_credentials.entity';
 import { Country } from 'src/common/entities/t_country.entity';
+import { NodeEntity } from 'src/note/entities/t_node.entity';
+import { NodeFileContentEntity } from 'src/note/entities/t_node_content.entity';
 
 
 @Entity('T_USERS')
@@ -52,4 +54,10 @@ export class User {
     @ManyToOne(() => Country, (country) => country.users)
     @JoinColumn({ name: 'country_id' })
     Tcountry: Country;
+
+    @OneToMany(() => NodeEntity, (node) => node.user)
+    nodes: NodeEntity[];
+
+    @OneToMany(() => NodeFileContentEntity, (fileContent) => fileContent.user)
+    fileContents: NodeFileContentEntity[];
 }
