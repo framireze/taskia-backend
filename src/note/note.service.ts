@@ -93,6 +93,10 @@ export class NoteService {
 
   async getNodeContent(nodeId: string): Promise<ApiResponse<string>> {
     try {
+      const node = await this.nodeRepository.findOne({ where: { nodeId, status: StatusNode.ACTIVE } });
+      if (!node) throw new NotFoundException({ success: false, message: 'Node not found' });
+      if(node.type !== NodeType.FILE) throw new BadRequestException({ success: false, message: 'Node is not a file' });
+      
       const nodeContent = await this.nodeFileContentRepository.findOne({ where: { nodeId } });
       if (!nodeContent) throw new NotFoundException({ success: false, message: 'Node content not found' });
       return { success: true, message: 'Node content fetched successfully', data: nodeContent.content || '' };
