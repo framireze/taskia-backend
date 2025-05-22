@@ -10,6 +10,9 @@ import { ApiResponse } from 'src/interfaces/api-response.interface';
 import { User } from 'src/auth/entities/t_users.entity';
 import { UpdateNodeDto } from './dto/updateNode.dto';
 import { NodeI } from 'src/interfaces/nodeWithChildren.interface';
+import { NodeFileContentEntity } from './entities/t_node_content.entity';
+import { CreateOrUpdateNodeContentDto } from './dto/createOrUpdateNodeContent.dto';
+import { NodeType } from './enums/node-type.enum';
 
 @Injectable()
 export class NoteService {
@@ -20,6 +23,8 @@ export class NoteService {
     private readonly nodeRepository: Repository<NodeEntity>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(NodeFileContentEntity)
+    private readonly nodeFileContentRepository: Repository<NodeFileContentEntity>,
   ) {}
 
   async createNode(createNodeDto: CreateNodeDto): Promise<ApiResponse<string>> {
@@ -68,6 +73,34 @@ export class NoteService {
     }
   }
 
+  async createOrUpdateNodeContent(nodeId: string, body: CreateOrUpdateNodeContentDto): Promise<ApiResponse<string>> {
+    try {
+      const node = await this.nodeRepository.findOne({ where: { nodeId, userId: body.userId } });
+      if (!node) throw new NotFoundException({ success: false, message: 'Node not found' });
+      if(node.type !== NodeType.FILE) throw new BadRequestException({ success: false, message: 'Node is not a file' });
+
+      const nodeContent = await this.nodeFileContentRepository.findOne({ where: { nodeId } });
+      if (nodeContent) {
+        await this.nodeFileContentRepository.update(nodeContent.fileContentId, { content: body.content });
+      } else {
+        await this.nodeFileContentRepository.save({ fileContentId: uuidv4(), nodeId, content: body.content, userId: body.userId });
+      }
+      return { success: true, message: 'Node content updated successfully', data: nodeId };
+    } catch (error) {
+      throw this.handleException(error);
+    }
+  }
+
+  async getNodeContent(nodeId: string): Promise<ApiResponse<string>> {
+    try {
+      const nodeContent = await this.nodeFileContentRepository.findOne({ where: { nodeId } });
+      if (!nodeContent) throw new NotFoundException({ success: false, message: 'Node content not found' });
+      return { success: true, message: 'Node content fetched successfully', data: nodeContent.content || '' };
+    } catch (error) {
+      throw this.handleException(error);
+    }
+  }
+
   async deleteNode(nodeId: string): Promise<ApiResponse<string>> {
     try {
       const node = await this.nodeRepository.findOne({ where: { nodeId } });
@@ -111,6 +144,8 @@ export class NoteService {
     if (error instanceof NotFoundException) {
       throw error;
     } else if (error.name === 'QueryFailedError') {
+      throw new BadRequestException({ success: false, message: error.message });
+    } else if (error instanceof BadRequestException) {
       throw new BadRequestException({ success: false, message: error.message });
     } else if (error instanceof ConflictException) {
       throw new ConflictException({ success: false, message: error.message })

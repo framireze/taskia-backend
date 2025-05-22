@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Param, Delete, Put } from '@nestjs/common'
 import { NoteService } from './note.service';
 import { CreateNodeDto } from './dto/createNode.dto';
 import { UpdateNodeDto } from './dto/updateNode.dto';
+import { CreateOrUpdateNodeContentDto } from './dto/createOrUpdateNodeContent.dto';
 
 @Controller('node')
 export class NoteController {
@@ -25,5 +26,15 @@ export class NoteController {
   @Delete(':nodeId')
   deleteNode(@Param('nodeId') nodeId: string) {
     return this.noteService.deleteNode(nodeId);
+  }
+
+  @Post(':nodeId/content')
+  createOrUpdateNodeContent(@Param('nodeId') nodeId: string, @Body() body: CreateOrUpdateNodeContentDto) {
+    return this.noteService.createOrUpdateNodeContent(nodeId, body);
+  }
+
+  @Get(':nodeId/content')
+  getNodeContent(@Param('nodeId') nodeId: string) {
+    return this.noteService.getNodeContent(nodeId);
   }
 }

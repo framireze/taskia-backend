@@ -4,11 +4,12 @@ import { NoteController } from './note.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { NodeEntity } from './entities/t_node.entity';
 import { User } from 'src/auth/entities/t_users.entity';
+import { NodeFileContentEntity } from './entities/t_node_content.entity';
 
 @Module({
   controllers: [NoteController],
   providers: [NoteService],
   exports: [NoteService],
-  imports: [TypeOrmModule.forFeature([NodeEntity, User])],
+  imports: [TypeOrmModule.forFeature([NodeEntity, User, NodeFileContentEntity])],
 })
 export class NoteModule {}
