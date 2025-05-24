@@ -107,10 +107,15 @@ export class NoteService {
 
   async deleteNode(nodeId: string): Promise<ApiResponse<string>> {
     try {
-      const node = await this.nodeRepository.findOne({ where: { nodeId } });
+      const node = await this.nodeRepository.findOne({ where: { nodeId }, relations: ['children'] });
       if (!node) throw new NotFoundException({ success: false, message: 'Node not found' });
 
       await this.nodeRepository.update(nodeId, { status: StatusNode.DELETED });
+      if(node.type === NodeType.FOLDER && node.children.length > 0) {
+        for(const child of node.children) {
+          await this.deleteNode(child.nodeId);
+        }
+      }
       return { success: true, message: 'Node deleted successfully', data: nodeId };
     } catch (error) {
       throw this.handleException(error);
