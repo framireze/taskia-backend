@@ -6,10 +6,11 @@ import { LRCredential } from './entities/t_credentials.entity';
 import { User } from './entities/t_users.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { JwtStrategy } from './jwt.strategy';
 
 @Module({
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService, JwtStrategy],
   imports: [
     TypeOrmModule.forFeature([LRCredential, User]),  
     ConfigModule,  
