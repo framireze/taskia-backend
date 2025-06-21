@@ -8,4 +8,8 @@ export const EnvConfiguration = () => ({
     measurementId: process.env.FIREBASE_MEASUREMENTID,
     default_icon_person: process.env.DEFAULT_ICON_PERSON,
     SECRET_KEY: process.env.SECRET_KEY,
+    AWS_DYNAMODB_REGION: process.env.AWS_DYNAMODB_REGION,
+    AWS_DYNAMODB_ACCESS_KEY_ID: process.env.AWS_DYNAMODB_ACCESS_KEY_ID,
+    AWS_DYNAMODB_SECRET_ACCESS_KEY: process.env.AWS_DYNAMODB_SECRET_ACCESS_KEY,
+    AWS_DYNAMODB_TABLE: process.env.AWS_DYNAMODB_TABLE,
   });
