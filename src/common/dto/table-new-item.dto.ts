@@ -5,6 +5,10 @@ import { Type } from "class-transformer";
 class HeaderDto {
   @IsString()
   @IsNotEmpty()
+  id: string;
+
+  @IsString()
+  @IsNotEmpty()
   name: string;
 
   @IsString()
@@ -26,7 +30,7 @@ export class TableNewItemDto {
 
   @IsString()
   @IsNotEmpty()
-  nodeId: string;
+  nodeId: string;       
 
   @IsString()
   @IsNotEmpty()
