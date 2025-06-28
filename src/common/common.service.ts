@@ -89,7 +89,7 @@ export class CommonService {
       const table = typedItems?.find(item => item.type === TableItemTypeEnum.HEADER)?.table;
       const columns = typedItems?.filter(item => item.type === TableItemTypeEnum.HEADER).map(item => item.columns);
       const records = typedItems?.filter(item => item.type === TableItemTypeEnum.RECORD).map(item => ({ recordId: item.recordId, record: item.record }));
-      return { success: true, message: 'Table detail fetched successfully', data: { nodeId, table, columns, records } };
+      return { success: true, message: 'Table detail fetched successfully', data: { nodeId, table, columns: columns?.length ? columns[0] : [], records } };
     } catch (error) {
       throw this.handleException(error);
     }
