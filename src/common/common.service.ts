@@ -14,6 +14,8 @@ import { DynamicTableDynamoInterface } from './interfaces.ts/dynamicTable-dynamo
 import { TableDeleteItemDto } from './dto/table-delete-item.dto';
 import { TableUpdateRecordDto } from './dto/table-update-record.dto';
 import { TableDeleteDto } from './dto/table-delete.dto';
+import { TableBatchRecordsDto } from './dto/table-batch-records.dto';
+import { TableBatchDeleteRecordsDto } from './dto/table-batch-delete-records.dto';
 
 @Injectable()
 export class CommonService {
@@ -68,6 +70,61 @@ export class CommonService {
       const result = await this.dynamoDBClient.send(command);
 
       return { success: true, message: 'Item created successfully', data: command.input.Item };
+    } catch (error) {
+      throw this.handleException(error);
+    }
+  }
+
+  async newItemsBatch(TableBatchRecordsDto: TableBatchRecordsDto) {
+    const { userId, nodeId, table_name, records, type } = TableBatchRecordsDto;
+    // DynamoDB tiene un límite de 25 items por BatchWrite
+    const BATCH_SIZE = 25;
+
+    try {
+      const timestamp = new Date().toISOString();
+      const results = [];
+
+      // Procesar en lotes de 25 items
+      for (let i = 0; i < records.length; i += BATCH_SIZE) {
+        const batch = records.slice(i, i + BATCH_SIZE);
+
+        // Construir los requests para el batch
+        const putRequests = batch.map(item => {
+          const recordId = type === TableItemTypeEnum.RECORD ? uuidv4() : undefined;
+          return {
+            PutRequest: {
+              Item: {
+                PK: this.buildPrimaryKey(userId),
+                SK: this.buildSortKey(nodeId, table_name, type, recordId || ''),
+                type: type,
+                table: table_name,
+                recordId: recordId,
+                columns: undefined,
+                record: JSON.parse(JSON.stringify(item)),
+                created_at: timestamp,
+                updated_at: timestamp,
+              } as DynamicTableDynamoInterface,
+            },
+          };
+        });
+
+        // Ejecutar el batch
+        const command = new BatchWriteCommand({
+          RequestItems: {
+            [this.tableName]: putRequests,
+          },
+        });
+        console.log('putRequests', putRequests);
+        const result = await this.dynamoDBClient.send(command);
+      }
+
+      return {
+        success: true,
+        message: `${records.length} records created successfully`,
+        totalRecords: records.length,
+        batches: results.length,
+        data: results
+      };
     } catch (error) {
       throw this.handleException(error);
     }
@@ -155,6 +212,94 @@ export class CommonService {
       await this.dynamoDBClient.send(command);
       return { success: true, message: 'Item deleted successfully' };
     } catch (error) {
+      throw this.handleException(error);
+    }
+  }
+
+  async removeItemsBatch(tableBatchDeleteItemsDto: TableBatchDeleteRecordsDto) {
+    const { userId, nodeId, table_name, type, recordIds } = tableBatchDeleteItemsDto;
+
+    // Validación
+    if (!recordIds || recordIds.length === 0) {
+      throw new BadRequestException({
+        success: false,
+        message: 'RecordIds array is required and cannot be empty'
+      });
+    }
+
+    // Eliminar duplicados
+    const uniqueRecordIds = [...new Set(recordIds)];
+    if (uniqueRecordIds.length !== recordIds.length) {
+      console.warn(`Se encontraron ${recordIds.length - uniqueRecordIds.length} IDs duplicados que serán ignorados`);
+    }
+
+    // DynamoDB tiene un límite de 25 items por BatchWrite
+    const BATCH_SIZE = 25;
+
+    try {
+      const results: any[] = [];
+      const errors: any[] = [];
+
+      // Procesar en lotes de 25 items
+      for (let i = 0; i < uniqueRecordIds.length; i += BATCH_SIZE) {
+        const batch = uniqueRecordIds.slice(i, i + BATCH_SIZE);
+
+        console.log(`\nProcesando lote ${Math.floor(i / BATCH_SIZE) + 1} con ${batch.length} items`);
+
+        // Construir los requests de eliminación para el batch
+        const deleteRequests = batch.map(recordId => ({
+          DeleteRequest: {
+            Key: {
+              PK: this.buildPrimaryKey(userId),
+              SK: this.buildSortKey(nodeId, table_name, type, recordId)
+            }
+          }
+        }));
+
+        // Ejecutar el batch
+        const command = new BatchWriteCommand({
+          RequestItems: {
+            [this.tableName]: deleteRequests,
+          },
+        });
+
+        try {
+          const result = await this.dynamoDBClient.send(command);
+          results.push({
+            batch: Math.floor(i / BATCH_SIZE) + 1,
+            processed: batch.length,
+            recordIds: batch
+          });
+
+        } catch (batchError) {
+          console.error(`Error en lote ${Math.floor(i / BATCH_SIZE) + 1}:`, batchError);
+          errors.push({
+            batch: Math.floor(i / BATCH_SIZE) + 1,
+            recordIds: batch,
+            error: batchError.message
+          });
+
+        }
+      }
+
+      const totalProcessed = results.reduce((sum, r) => sum + r.processed, 0);
+      const totalErrors = errors.reduce((sum, e) => sum + e.recordIds.length, 0);
+
+      console.log(`\n=== ELIMINACIÓN COMPLETADA ===`);
+      console.log(`Exitosos: ${totalProcessed}`);
+      console.log(`Errores: ${totalErrors}`);
+
+      return {
+        success: errors.length === 0,
+        message: `${totalProcessed} items deleted successfully${totalErrors > 0 ? `, ${totalErrors} failed` : ''}`,
+        totalRequested: recordIds.length,
+        totalProcessed,
+        totalErrors,
+        batches: results,
+        errors: errors.length > 0 ? errors : undefined
+      };
+    } catch (error) {
+      console.error('Error general en eliminación masiva:', error);
       throw this.handleException(error);
     }
   }

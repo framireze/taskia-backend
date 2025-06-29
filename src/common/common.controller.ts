@@ -4,6 +4,8 @@ import { TableNewItemDto } from './dto/table-new-item.dto';
 import { TableDeleteItemDto } from './dto/table-delete-item.dto';
 import { TableUpdateRecordDto } from './dto/table-update-record.dto';
 import { TableDeleteDto } from './dto/table-delete.dto';
+import { TableBatchRecordsDto } from './dto/table-batch-records.dto';
+import { TableBatchDeleteRecordsDto } from './dto/table-batch-delete-records.dto';
 
 @Controller('')
 export class CommonController {
@@ -24,6 +26,11 @@ export class CommonController {
     return this.commonService.newItem(tableNewItemDto);
   }
 
+  @Post('table/new-records')
+  newRecords(@Body() tableBatchRecordsDto: TableBatchRecordsDto) {
+    return this.commonService.newItemsBatch(tableBatchRecordsDto);
+  }
+
   @Get('table/detail/:userId/:nodeId')
   getAllDetail(@Param('userId') userId: string, @Param('nodeId') nodeId: string) {
     return this.commonService.getTableDetail(userId, nodeId);
@@ -37,6 +44,11 @@ export class CommonController {
   @Delete('table/delete-item')
   deleteItem(@Body() tableDeleteItemDto: TableDeleteItemDto) {
     return this.commonService.removeItem(tableDeleteItemDto);
+  }
+
+  @Delete('table/delete-records')
+  deleteRecords(@Body() tableBatchDeleteRecordsDto: TableBatchDeleteRecordsDto) {
+    return this.commonService.removeItemsBatch(tableBatchDeleteRecordsDto);
   }
 
   @Delete('table/delete-table')
