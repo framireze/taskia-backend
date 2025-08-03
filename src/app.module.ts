@@ -7,6 +7,7 @@ import { EnvConfiguration } from './config/app.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommonModule } from './common/common.module';
 import { NoteModule } from './note/note.module';
+import { MercadopagoModule } from './mercadopago/mercadopago.module';
 
 @Module({
   imports: [
@@ -27,8 +28,9 @@ import { NoteModule } from './note/note.module';
     AuthModule,
     CommonModule,
     NoteModule,
+    MercadopagoModule,
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

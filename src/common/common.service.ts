@@ -16,6 +16,7 @@ import { TableUpdateRecordDto } from './dto/table-update-record.dto';
 import { TableDeleteDto } from './dto/table-delete.dto';
 import { TableBatchRecordsDto } from './dto/table-batch-records.dto';
 import { TableBatchDeleteRecordsDto } from './dto/table-batch-delete-records.dto';
+import { QueryCountriesDto } from './dto/query-countries.dto';
 
 @Injectable()
 export class CommonService {
@@ -36,8 +37,10 @@ export class CommonService {
     this.tableName = this.configService.get('AWS_DYNAMODB_TABLE') || 'taskia_DynamicTables';
   }
 
-  async getCountries(): Promise<ApiResponse<Country[]>> {
-    const countries = await this.countryRepository.find();
+  async getCountries(query: QueryCountriesDto): Promise<ApiResponse<Country[]>> {
+    const { isoCode2 } = query;
+    const countries = await this.countryRepository.find({ where: { isoCode2: isoCode2 }});
+    if(countries.length === 0) throw new NotFoundException({ success: false, message: 'No countries found' });
     return { success: true, message: 'Countries fetched successfully', data: countries };
   }
 

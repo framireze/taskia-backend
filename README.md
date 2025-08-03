@@ -99,3 +99,6 @@ Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
 
 ## DOCKER
 docker-compose up --build
+
+## En servidor Linux
+docker compose up --build

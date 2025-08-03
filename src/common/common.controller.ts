@@ -6,14 +6,15 @@ import { TableUpdateRecordDto } from './dto/table-update-record.dto';
 import { TableDeleteDto } from './dto/table-delete.dto';
 import { TableBatchRecordsDto } from './dto/table-batch-records.dto';
 import { TableBatchDeleteRecordsDto } from './dto/table-batch-delete-records.dto';
+import { QueryCountriesDto } from './dto/query-countries.dto';
 
 @Controller('')
 export class CommonController {
   constructor(private readonly commonService: CommonService) {}
 
   @Get('countries')
-  getCountries() {
-    return this.commonService.getCountries();
+  getCountries(@Query() query: QueryCountriesDto) {
+    return this.commonService.getCountries(query);
   }
 
   @Get('id-types')
